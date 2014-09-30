@@ -1,0 +1,6 @@
+set(
+  CLIENT_SOURCES
+    ${CLIENT_SOURCES}
+
+  PARENT_SCOPE
+)

@@ -1,0 +1,23 @@
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/client)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
+
+set(
+  COMMON_SOURCES
+    ${CLIENT_SOURCES}
+
+  PARENT_SCOPE
+)
+
+set(
+  SERVER_SOURCES
+    ${SERVER_SOURCES}
+
+  PARENT_SCOPE
+)
+
+set(
+  CLIENT_SOURCES
+    ${CLIENT_SOURCES}
+
+  PARENT_SCOPE
+)
