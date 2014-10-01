@@ -14,14 +14,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # to use clang use -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-set(SERVER_BINARY_NAME server)
-set(CLIENT_BINARY_NAME client)
+set(SERVER_BINARY_NAME "server")
+set(CLIENT_BINARY_NAME "client")
 
 # normal compiler flags
 add_definitions(
   -Wall
   -Wextra
-  -std=c++11
+  -std=gnu99
 )
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
 
@@ -92,7 +92,7 @@ add_custom_command(
     server
   POST_BUILD
     COMMAND ${CMAKE_COMMAND}
-      ARGS -E RENAME
+      ARGS -E rename
         ${CMAKE_CURRENT_SOURCE_DIR}/server
         ${CMAKE_CURRENT_SOURCE_DIR}/${SERVER_BINARY_NAME}
 )
@@ -167,7 +167,7 @@ add_custom_command(
     server_debug_address
   POST_BUILD
     COMMAND ${CMAKE_COMMAND}
-      ARGS -E RENAME
+      ARGS -E rename
         ${CMAKE_CURRENT_SOURCE_DIR}/server_debug_address
         ${CMAKE_CURRENT_SOURCE_DIR}/${SERVER_BINARY_NAME}
 )
@@ -228,7 +228,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       server_debug_memory
     POST_BUILD
       COMMAND ${CMAKE_COMMAND}
-        ARGS -E RENAME
+        ARGS -E rename
           ${CMAKE_CURRENT_SOURCE_DIR}/server_debug_memory
           ${CMAKE_CURRENT_SOURCE_DIR}/${SERVER_BINARY_NAME}
   )
@@ -299,7 +299,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       server_debug_thread
     POST_BUILD
       COMMAND ${CMAKE_COMMAND}
-        ARGS -E RENAME
+        ARGS -E rename
           ${CMAKE_CURRENT_SOURCE_DIR}/server_debug_thread
           ${CMAKE_CURRENT_SOURCE_DIR}/${SERVER_BINARY_NAME}
   )
@@ -309,14 +309,14 @@ endif()
 #                               DEFAULT                                 #
 #########################################################################
 # create executable target - client
-add_executable(client ${SOURCES})
+add_executable(client ${CLIENT_SOURCES})
 #rename binary file
 add_custom_command(
   TARGET
     client
   POST_BUILD
     COMMAND ${CMAKE_COMMAND}
-      ARGS -E RENAME
+      ARGS -E rename
         ${CMAKE_CURRENT_SOURCE_DIR}/client
         ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
 )
@@ -328,7 +328,7 @@ add_custom_command(
 add_executable(
   client_debug_address
   EXCLUDE_FROM_ALL
-    ${SOURCES}
+    ${CLIENT_SOURCES}
 )
 # custom target to build with clangs asan
 set(
@@ -386,7 +386,7 @@ add_custom_command(
     client_debug_address
   POST_BUILD
     COMMAND ${CMAKE_COMMAND}
-      ARGS -E RENAME
+      ARGS -E rename
         ${CMAKE_CURRENT_SOURCE_DIR}/client_debug_address
         ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
 )
@@ -399,7 +399,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_executable(
     client_debug_memory
     EXCLUDE_FROM_ALL
-      ${SOURCES}
+      ${CLIENT_SOURCES}
   )
   # custom target to build with clangs msan
   set(
@@ -442,7 +442,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       client_debug_memory
     POST_BUILD
       COMMAND ${CMAKE_COMMAND}
-        ARGS -E RENAME
+        ARGS -E rename
           ${CMAKE_CURRENT_SOURCE_DIR}/client_debug_memory
           ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
   )
@@ -455,7 +455,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_executable(
     client_debug_thread
     EXCLUDE_FROM_ALL
-      ${SOURCES}
+      ${CLIENT_SOURCES}
   )
   # custom target to build with clangs tsan
   set(
@@ -508,7 +508,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       client_debug_thread
     POST_BUILD
       COMMAND ${CMAKE_COMMAND}
-        ARGS -E RENAME
+        ARGS -E rename
           ${CMAKE_CURRENT_SOURCE_DIR}/client_debug_thread
           ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
   )
