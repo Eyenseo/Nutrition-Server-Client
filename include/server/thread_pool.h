@@ -35,7 +35,20 @@ void thread_pool_work_wrapper(thread_pool_param_t* const p) {
   free(p);
 }
 
-bool thread_poll_create(thread_pool_t** const tp) {
+
+bool thread_pool_stop(thread_pool_t* const tp) {
+  if(tp != NULL && tp->running) {
+    tp->running = false;
+
+    for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
+      pthread_join(tp->pool[i], NULL);
+    }
+  }
+  return false;
+}
+
+
+bool thread_pool_create(thread_pool_t** const tp) {
   if(tp != NULL) {
     *tp = malloc(sizeof(thread_pool_t));
 
@@ -77,17 +90,6 @@ bool thread_pool_start(thread_pool_t* const tp, void (*fun)(int, void*),
                      (void* (*)(void*))thread_pool_work_wrapper, p);
     }
     return true;
-  }
-  return false;
-}
-
-bool thread_pool_stop(thread_pool_t* const tp) {
-  if(tp != NULL && tp->running) {
-    tp->running = false;
-
-    for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
-      pthread_join(tp->pool[i], NULL);
-    }
   }
   return false;
 }

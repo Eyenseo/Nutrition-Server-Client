@@ -14,7 +14,7 @@
 #define STRGIFY(x) STRGIFY2(x)
 #define STRGIFY2(x) #x
 
-int count_csv_lines(FILE* f, int* lines) {
+bool count_csv_lines(FILE* f, int* lines) {
   if(f != NULL && lines != NULL) {
     long int pos = ftell(f);
     int c = fgetc(f);
@@ -22,7 +22,7 @@ int count_csv_lines(FILE* f, int* lines) {
     if(pos == -1L) {
       perror("The following error occurred" STRGIFY(__FILE__) ":" STRGIFY(
           __LINE__));
-      return -1;
+      return false;
     }
 
     if(c != EOF && c != '#') {  // check first line
@@ -39,9 +39,9 @@ int count_csv_lines(FILE* f, int* lines) {
 
     fseek(f, pos, SEEK_SET);
 
-    return 0;
+    return true;
   }
-  return -1;
+  return false;
 }
 
 void calculate_sections(const char* const line, int* const sec_arr) {
@@ -85,8 +85,8 @@ bool cstring_to_food(const char* const line, food_t** const food_p) {
 }
 
 
-int file_to_food_array(const char* const filename, food_t*** arr_p,
-                       int* const length) {
+bool file_to_food_array(const char* const filename, food_t*** arr_p,
+                        int* const length) {
 
   if(filename != NULL && arr_p != NULL && length != NULL) {
 
@@ -97,7 +97,7 @@ int file_to_food_array(const char* const filename, food_t*** arr_p,
     if(f == NULL) {
       perror("The following error occurred in line " STRGIFY(
           __FILE__) ":" STRGIFY(__LINE__));
-      return -1;
+      return false;
     }
 
     count_csv_lines(f, length);
@@ -125,9 +125,9 @@ int file_to_food_array(const char* const filename, food_t*** arr_p,
 
     fclose(f);
 
-    return 0;
+    return true;
   }
-  return -1;
+  return false;
 }
 
 #undef STRGIFY
