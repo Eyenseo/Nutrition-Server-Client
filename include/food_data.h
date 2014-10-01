@@ -3,6 +3,12 @@
 
 #include <stdlib.h>
 
+#define FOOD_DATA_TEXT_LENGTH 40
+#define FOOD_DATA_INT_LENGTH 10
+#define FOOD_DATA_FLOAT_LENGTH FOOD_DATA_INT_LENGTH + 4  // one dot 3 deci
+#define FOOD_DATA_SERIALIZED_LENGTH \
+  2 * FOOD_DATA_TEXT_LENGTH + 6 * FOOD_DATA_INT_LENGTH + FOOD_DATA_FLOAT_LENGTH;
+
 typedef struct {
   int k_cal;
   int fat;
@@ -16,31 +22,7 @@ typedef struct {
 } food_t;
 
 
-food_t* food_create() {
-  food_t* foo = malloc(sizeof(food_t));
-
-  foo->k_cal = 0;
-  foo->fat = 0;
-  foo->carbo = 0;
-  foo->protein = 0;
-  foo->name_length = 0;
-  foo->measure_length = 0;
-  foo->weight = 0;
-  foo->name = NULL;
-  foo->measure = NULL;
-
-  return foo;
-}
-
-
-void food_destroy(food_t* const foo) {
-  if(foo->name != NULL) {
-    free(foo->name);
-  }
-  if(foo->measure != NULL) {
-    free(foo->measure);
-  }
-  free(foo);
-}
+food_t* food_create();
+void food_destroy(food_t* const foo);
 
 #endif

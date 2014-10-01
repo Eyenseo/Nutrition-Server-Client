@@ -25,7 +25,7 @@ add_definitions(
 )
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   add_definitions(
     -Wdocumentation
     -fdiagnostics-show-template-tree
@@ -33,7 +33,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -fparse-all-comments
     -Wno-c++98-compat
   )
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   add_definitions(
     -Wno-unknown-pragmas
   )
@@ -118,7 +118,7 @@ set(
     -fno-optimize-sibling-calls
     -fsanitize=address
 )
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   set(
     SERVER_DEBUG_ADDRESS_FLAGS
       ${SERVER_DEBUG_ADDRESS_FLAGS}
@@ -172,7 +172,7 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}/${SERVER_BINARY_NAME}
 )
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   #########################################################################
   #                       MEMORY SANITIZER TARGET                         #
   #########################################################################
@@ -337,7 +337,7 @@ set(
     -fno-optimize-sibling-calls
     -fsanitize=address
 )
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   set(
     CLIENT_DEBUG_ADDRESS_FLAGS
       ${CLIENT_DEBUG_ADDRESS_FLAGS}
@@ -391,7 +391,7 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
 )
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   #########################################################################
   #                       MEMORY SANITIZER TARGET                         #
   #########################################################################

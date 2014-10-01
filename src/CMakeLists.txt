@@ -4,6 +4,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
 set(
   COMMON_SOURCES
     ${COMMON_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/food_data.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/networking.c
 
   PARENT_SCOPE
 )
