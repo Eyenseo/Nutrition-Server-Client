@@ -3,20 +3,18 @@
 #include <stdio.h>
 #include <string.h>
 
-food_t* food_create() {
-  food_t* foo = malloc(sizeof(food_t));
+bool food_create(food_t** const foo) {
+  *foo = malloc(sizeof(food_t));
 
-  foo->k_cal = 0;
-  foo->fat = 0;
-  foo->carbo = 0;
-  foo->protein = 0;
-  foo->name_length = 0;
-  foo->measure_length = 0;
-  foo->weight = 0;
-  foo->name = NULL;
-  foo->measure = NULL;
+  (*foo)->k_cal = 0;
+  (*foo)->fat = 0;
+  (*foo)->carbo = 0;
+  (*foo)->protein = 0;
+  (*foo)->weight = 0;
+  (*foo)->name = NULL;
+  (*foo)->measure = NULL;
 
-  return foo;
+  return true;
 }
 
 void food_destroy(food_t* const foo) {
@@ -31,9 +29,9 @@ void food_destroy(food_t* const foo) {
 
 bool food_serialize(const food_t* const f, char* const arr) {
   if(f != NULL && arr != NULL) {
-    sprintf(arr, "%d,%d,%d,%d,%d,%d,%.3f,%s%s", f->carbo, f->fat, f->k_cal,
-            f->measure_length, f->name_length, f->protein, f->weight,
-            f->measure, f->name);
+    sprintf(arr, "%10d%10d%10d%10d%10d%10d%14.3f%s%s", f->carbo, f->fat,
+            f->k_cal, strlen(f->measure), strlen(f->name), f->protein,
+            f->weight, f->measure, f->name);
     return true;
   }
   return false;
@@ -43,22 +41,25 @@ bool food_deserialize(const char* const arr, food_t** const f) {
   if(f != NULL && arr != NULL) {
     *f = malloc(sizeof(food_t));
     food_t* const foo = *f;
+    int measure_length;
+    int name_length;
 
-    sscanf(arr, "%d,%d,%d,%d,%d,%d,%f,%*[^\n\0]", &foo->carbo, &foo->fat,
-           &foo->k_cal, &foo->measure_length, &foo->name_length, &foo->protein,
+
+    sscanf(arr, "%10d%10d%10d%10d%10d%10d%13f%*[^\n\0]", &foo->carbo, &foo->fat,
+           &foo->k_cal, &measure_length, &name_length, &foo->protein,
            &foo->weight);
 
     int offset = 6 * FOOD_DATA_INT_LENGTH + FOOD_DATA_FLOAT_LENGTH;
 
-    foo->measure = malloc(sizeof(char) * foo->measure_length + 1);
-    strncpy(foo->measure, arr + offset, foo->measure_length);
-    foo->measure[foo->measure_length] = '\0';
+    foo->measure = malloc(sizeof(char) * (measure_length + 1));
+    strncpy(foo->measure, arr + offset, measure_length);
+    foo->measure[measure_length] = '\0';
 
-    offset += foo->measure_length;
+    offset += measure_length;
 
-    foo->name = malloc(sizeof(char) * foo->name_length + 1);
-    strncpy(foo->name, arr + offset, foo->name_length);
-    foo->name[foo->name_length] = '\0';
+    foo->name = malloc(sizeof(char) * (name_length + 1));
+    strncpy(foo->name, arr + offset, name_length);
+    foo->name[name_length] = '\0';
 
     return true;
   }

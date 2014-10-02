@@ -8,7 +8,7 @@
 #define FOOD_DATA_INT_LENGTH 10
 #define FOOD_DATA_FLOAT_LENGTH FOOD_DATA_INT_LENGTH + 4  // one dot 3 deci
 #define FOOD_DATA_SERIALIZED_LENGTH \
-  2 * FOOD_DATA_TEXT_LENGTH + 6 * FOOD_DATA_INT_LENGTH + FOOD_DATA_FLOAT_LENGTH;
+  2 * FOOD_DATA_TEXT_LENGTH + 6 * FOOD_DATA_INT_LENGTH + FOOD_DATA_FLOAT_LENGTH
 
 typedef struct {
   char* measure;
@@ -17,12 +17,10 @@ typedef struct {
   int carbo;
   int fat;
   int k_cal;
-  int measure_length;
-  int name_length;
   int protein;
 } food_t;
 
-food_t* food_create();
+bool food_create(food_t** const foo);
 void food_destroy(food_t* const foo);
 
 bool food_serialize(const food_t* const f, char* const arr);

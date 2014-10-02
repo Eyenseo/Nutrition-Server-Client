@@ -53,21 +53,20 @@ bool cstring_to_food(const char* const line, food_t** const food_p) {
     int sections[7];
     calculate_sections(line, sections);
 
-    *food_p = food_create();
+    food_create(food_p);
     food_t* foo = *food_p;
 
     sscanf(line + sections[2], ",%f,%d,%d,%d,%d", &foo->weight, &foo->k_cal,
            &foo->fat, &foo->carbo, &foo->protein);
 
-    foo->name_length = sections[1];
     foo->name = malloc(sizeof(char) * 50);
     strncpy(foo->name, line, sections[1]);
     foo->name[sections[1]] = '\0';
 
-    foo->measure_length = sections[2] - sections[1] - 1;
+    int measure_length = sections[2] - sections[1] - 1;
     foo->measure = malloc(sizeof(char) * 50);
-    strncpy(foo->measure, line + sections[1] + 1, foo->measure_length);
-    foo->measure[foo->measure_length] = '\0';
+    strncpy(foo->measure, line + sections[1] + 1, measure_length);
+    foo->measure[measure_length] = '\0';
 
     return true;
   }

@@ -12,23 +12,37 @@ void server_worker(int id, server_t* s) {
       bool client = true;
       s->used_fds[id] = client_fd;
 
+      send_number(client_fd, START);
+
       while(s->running && client) {
         network_intent_t ni;
 
-        if(recv_number(client_fd, &ni) && s->running) {
+        if((client = recv_number(client_fd, &ni)) && s->running) {
           switch(ni) {
           default:
-            printf("Received bad intent from client %d\n", client_fd);
+            printf("Received bad intent '%d' from client %d\n", ni, client_fd);
             break;
           case ADD:
-            server_worker_add(s, client_fd);
+            client = server_worker_add(s, client_fd);
+            if(!client) {
+              printf("Client %d disconnected ungracefully\n", client_fd);
+            }
             break;
           case QUIT:
             printf("Client %d disconnected gracefully\n", client_fd);
             client = false;
             break;
           case SEARCH:
-            server_worker_search(s, client_fd);
+            printf("Start Search\n");
+            client = server_worker_search(s, client_fd);
+            printf("End Search\n");
+            if(!client) {
+              printf("Client %d disconnected ungracefully\n", client_fd);
+            }
+          }
+        } else {
+          if(!client) {
+            printf("Client %d disconnected ungracefully\n", client_fd);
           }
         }
       }
@@ -39,17 +53,17 @@ void server_worker(int id, server_t* s) {
 }
 
 bool server_worker_add(server_t* const s, int client_fd) {
-  char* buff;
+  char* buf;
 
-  if(recv_cstr(client_fd, &buff)) {
+  if(recv_cstr(client_fd, &buf)) {
     food_t* f;
-    if(food_deserialize(buff, &f)) {
+    if(food_deserialize(buf, &f)) {
       server_write_start(s);
 
       food_t** db_new = malloc(sizeof(food_t*) * (s->db_size + 1));
       bool once = true;
       for(int i = 0, j = 0; i < s->db_size; ++i, ++j) {
-        if(once && strncasecmp(f->name, s->db[i]->name, f->name_length) < 0) {
+        if(once && strncasecmp(f->name, s->db[i]->name, strlen(f->name)) < 0) {
           db_new[j] = f;
           ++j;
           once = false;
@@ -65,9 +79,10 @@ bool server_worker_add(server_t* const s, int client_fd) {
       server_write_end(s);
 
       send_number(client_fd, SUCCESS);
+      free(buf);
       return true;
     }
-    free(buff);
+    free(buf);
     send_number(client_fd, FAILIOR);
   }
 
@@ -76,21 +91,20 @@ bool server_worker_add(server_t* const s, int client_fd) {
 
 bool server_worker_search(server_t* const s, int client_fd) {
   bool result = false;
-  char* buff;
+  char* buf;
 
-  if(recv_cstr(client_fd, &buff)) {
-    int len = strlen(buff);
+  if(recv_cstr(client_fd, &buf)) {
+    int len = strlen(buf);
     int q_len = 0;
     int_queue_t* q;
     int_queue_create(&q);
 
     server_read_start(s);
 
-
     for(int i = 0; i < s->db_size; ++i) {
       const char* const n = s->db[i]->name;
 
-      if(strncasecmp(buff, n, len) == 0) {
+      if(strncasecmp(buf, n, len) == 0) {
         if(n[len] == '\0' || n[len] == '\t' || n[len] == ' ') {
           int_queue_push_back(q, i);
           ++q_len;
@@ -103,7 +117,11 @@ bool server_worker_search(server_t* const s, int client_fd) {
       int n;
       int_queue_pop(q, &n);
 
-      food_serialize(s->db[n], &(*arr)[i]);
+      printf("i: %d\tn: %d\n", i, n);
+
+      arr[i] = calloc(sizeof(char), FOOD_DATA_SERIALIZED_LENGTH);
+
+      food_serialize(s->db[n], arr[i]);
     }
     server_read_end(s);
 
@@ -117,6 +135,7 @@ bool server_worker_search(server_t* const s, int client_fd) {
       free(arr[i]);
     }
     free(arr);
+    free(buf);
   }
   return result;
 }
@@ -167,6 +186,7 @@ bool server_create(server_t** const sp, const char* const db_filename,
     server_t* s = *sp;
 
     s->running = false;
+    s->read_count = 0;
     s->db_filename = db_filename;
     if(port != NULL) {
       s->port = port;
@@ -178,7 +198,10 @@ bool server_create(server_t** const sp, const char* const db_filename,
       pthread_mutex_init(&s->read_mutex, NULL);
       pthread_mutex_init(&s->write_mutex, NULL);
       pthread_cond_init(&s->write_cond, NULL);
+
+      return true;
     }
+    free(sp);
   }
   return false;
 }
@@ -202,7 +225,6 @@ void server_start_listen(server_t* const s) {
   socklen_t sin_size;
   struct sockaddr_storage their_addr;  // For fancy status
   int new_fd;
-
 
   while(s->running) {
     sin_size = sizeof their_addr;
@@ -277,8 +299,6 @@ bool server_start_init(server_t* const s) {
     perror("listen");
     return false;
   }
-
-  printf("server: waiting for connections...\n");
 
   pthread_create(&s->listener, NULL, (void* (*)(void*))server_start_listen, s);
 
