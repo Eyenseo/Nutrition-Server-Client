@@ -149,6 +149,8 @@ void server_destroy(server_t* const s) {
       pthread_mutex_destroy(&s->write_mutex);
       pthread_cond_destroy(&s->write_cond);
 
+      file_parser_food_array_to_file(s->db_filename, s->db, s->db_size);
+
       for(int i = 0; i < s->db_size; ++i) {
         food_destroy(s->db[i]);
       }
@@ -194,7 +196,7 @@ bool server_create(server_t** const sp, const char* const db_filename,
       s->port = DEFAULT_PORT;
     }
 
-    if(file_to_food_array(db_filename, &s->db, &s->db_size)) {
+    if(file_parser_file_to_food_array(db_filename, &s->db, &s->db_size)) {
       pthread_mutex_init(&s->read_mutex, NULL);
       pthread_mutex_init(&s->write_mutex, NULL);
       pthread_cond_init(&s->write_cond, NULL);

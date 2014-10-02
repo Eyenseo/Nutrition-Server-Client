@@ -48,7 +48,6 @@ bool send_number(int const fd, int n) {
   char buf[NETWORKING_INT_LENGTH + 1];
 
   sprintf(buf, "%" STRGIFY(NETWORKING_INT_LENGTH) "d", n);
-  printf("Send '%d' as '%s'\n", n, buf);
   return save_send(fd, buf, NETWORKING_INT_LENGTH);
 }
 
@@ -63,7 +62,6 @@ bool recv_number(int const fd, int* const n) {
   buf[b_rec] = '\0';
 
   sscanf(buf, "%d", n);
-  printf("Recv '%s' as '%d'\n", buf, *n);
   return true;
 }
 

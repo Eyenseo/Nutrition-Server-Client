@@ -44,7 +44,6 @@ bool food_deserialize(const char* const arr, food_t** const f) {
     int measure_length;
     int name_length;
 
-
     sscanf(arr, "%10d%10d%10d%10d%10d%10d%13f%*[^\n\0]", &foo->carbo, &foo->fat,
            &foo->k_cal, &measure_length, &name_length, &foo->protein,
            &foo->weight);
@@ -61,7 +60,18 @@ bool food_deserialize(const char* const arr, food_t** const f) {
     strncpy(foo->name, arr + offset, name_length);
     foo->name[name_length] = '\0';
 
+    food_clear_cstr(foo->name);
+    food_clear_cstr(foo->measure);
+
     return true;
   }
   return false;
+}
+
+void food_clear_cstr(char* const s) {
+  for(unsigned long i = 0, i_end = strlen(s); i < i_end; ++i) {
+    if(s[i] == '\n' || s[i] == '\t') {
+      s[i] = ' ';
+    }
+  }
 }

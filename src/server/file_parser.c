@@ -3,7 +3,7 @@
 #define STRGIFY(x) STRGIFY2(x)
 #define STRGIFY2(x) #x
 
-bool count_csv_lines(FILE* f, int* lines) {
+bool file_parser_count_csv_lines(FILE* f, int* lines) {
   if(f != NULL && lines != NULL) {
     long int pos = ftell(f);
     int c = fgetc(f);
@@ -34,7 +34,8 @@ bool count_csv_lines(FILE* f, int* lines) {
   return false;
 }
 
-void calculate_sections(const char* const line, int* const sec_arr) {
+void file_parser_calculate_sections(const char* const line,
+                                    int* const sec_arr) {
   int i = 0;
 
   while(line[i] != '\0') {
@@ -48,10 +49,11 @@ void calculate_sections(const char* const line, int* const sec_arr) {
   }
 }
 
-bool cstring_to_food(const char* const line, food_t** const food_p) {
+bool file_parser_cstring_to_food(const char* const line,
+                                 food_t** const food_p) {
   if(line != NULL && food_p != NULL && line[0] != '#') {
     int sections[7];
-    calculate_sections(line, sections);
+    file_parser_calculate_sections(line, sections);
 
     food_create(food_p);
     food_t* foo = *food_p;
@@ -74,8 +76,8 @@ bool cstring_to_food(const char* const line, food_t** const food_p) {
 }
 
 
-bool file_to_food_array(const char* const filename, food_t*** const arr_p,
-                        int* const length) {
+bool file_parser_file_to_food_array(const char* const filename,
+                                    food_t*** const arr_p, int* const length) {
 
   if(filename != NULL && arr_p != NULL && length != NULL) {
 
@@ -89,7 +91,7 @@ bool file_to_food_array(const char* const filename, food_t*** const arr_p,
       return false;
     }
 
-    count_csv_lines(f, length);
+    file_parser_count_csv_lines(f, length);
 
     *arr_p = malloc(sizeof(food_t*) * *length);
 
@@ -104,7 +106,7 @@ bool file_to_food_array(const char* const filename, food_t*** const arr_p,
         break;
       }
 
-      if(cstring_to_food(buff, &((*arr_p)[i]))) {
+      if(file_parser_cstring_to_food(buff, &((*arr_p)[i]))) {
         ++i;
       }
 
@@ -120,8 +122,8 @@ bool file_to_food_array(const char* const filename, food_t*** const arr_p,
 }
 
 
-bool food_array_to_file(const char* const filename, food_t** const arr,
-                        int const length) {
+bool file_parser_food_array_to_file(const char* const filename,
+                                    food_t** const arr, int const length) {
   if(filename != NULL && arr != NULL) {
     FILE* f;
 

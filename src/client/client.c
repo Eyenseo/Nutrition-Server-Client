@@ -19,11 +19,13 @@ void client_create(client_t** const c, const char* const ip,
                    const char* const port) {
   *c = malloc(sizeof(client_t));
   (*c)->running = false;
+
   if(ip == NULL) {
     (*c)->server_ip = CLIENT_DEFAULT_IP;
   } else {
     (*c)->server_ip = NULL;
   }
+
   if(port == NULL) {
     (*c)->server_port = CLIENT_DEFAULT_PORT;
   } else {
@@ -123,20 +125,21 @@ bool client_ui_add(client_t* const c) {
   food_t* f;
   food_create(&f);
 
-  client_get_cstring(
+  client_ui_get_cstring(
       "Please enter the name of the food: [" STRGIFY(FOOD_DATA_TEXT_LENGTH) "]",
       &f->name);
-  client_get_cstring("Please enter the measure of the food data: [" STRGIFY(
-                         FOOD_DATA_TEXT_LENGTH) "]",
-                     &f->measure);
-  client_get_ufloat("Please enter the weight of the food data: [g]",
-                    &f->weight);
-  client_get_uint("Please enter the kilo calorie of the food data:", &f->k_cal);
-  client_get_uint("Please enter the fat of the food data: [g]", &f->fat);
-  client_get_uint("Please enter the carbohydrate of the food data: [g]",
-                  &f->carbo);
-  client_get_uint("Please enter the protein of the food data: [g]",
-                  &f->protein);
+  client_ui_get_cstring("Please enter the measure of the food data: [" STRGIFY(
+                            FOOD_DATA_TEXT_LENGTH) "]",
+                        &f->measure);
+  client_ui_get_ufloat("Please enter the weight of the food data: [g]",
+                       &f->weight);
+  client_ui_get_uint("Please enter the kilo calorie of the food data:",
+                     &f->k_cal);
+  client_ui_get_uint("Please enter the fat of the food data: [g]", &f->fat);
+  client_ui_get_uint("Please enter the carbohydrate of the food data: [g]",
+                     &f->carbo);
+  client_ui_get_uint("Please enter the protein of the food data: [g]",
+                     &f->protein);
 
   if(send_number(c->server_fd, ADD)) {
     int rec;
@@ -162,7 +165,7 @@ bool client_ui_search(client_t* const c) {
   int res_len;
   bool suc = false;
 
-  client_get_cstring(
+  client_ui_get_cstring(
       "Please enter the search term: [" STRGIFY(FOOD_DATA_TEXT_LENGTH) "]", &s);
 
   printf("Sending request\n> ...");
@@ -197,7 +200,7 @@ bool client_ui_search(client_t* const c) {
   return suc;
 }
 
-void client_get_uint(const char* const text, int* const n) {
+void client_ui_get_uint(const char* const text, int* const n) {
   bool good = false;
 
   while(!good) {
@@ -211,7 +214,7 @@ void client_get_uint(const char* const text, int* const n) {
   }
 }
 
-void client_get_ufloat(const char* const text, float* const n) {
+void client_ui_get_ufloat(const char* const text, float* const n) {
   bool good = false;
 
   while(!good) {
@@ -225,7 +228,7 @@ void client_get_ufloat(const char* const text, float* const n) {
   }
 }
 
-void client_get_cstring(const char* const text, char** const s) {
+void client_ui_get_cstring(const char* const text, char** const s) {
   *s = malloc(sizeof(char) * FOOD_DATA_TEXT_LENGTH);
   do {
     printf("%s\n> ", text);
