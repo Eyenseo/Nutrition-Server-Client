@@ -12,10 +12,10 @@ typedef struct {
   const char* server_port;
 } client_t;
 
-bool client_connect(client_t* const c);
 void client_create(client_t** const c, const char* const ip,
                    const char* const port);
 void client_destroy(client_t* const c);
+bool client_connect(client_t* const c);
 bool client_ui(client_t* const c);
 bool client_ui_add(client_t* const c);
 bool client_ui_search(client_t* const c);

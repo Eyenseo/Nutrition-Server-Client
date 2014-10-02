@@ -2,32 +2,6 @@
 
 #include <stdio.h>
 
-void thread_pool_work_wrapper(thread_pool_param_t* const p) {
-  while(p->tp->running) {
-    sem_wait(&p->tp->sem);
-
-    if(p->tp->running) {
-      p->tp->fun(p->id, p->tp->arg);
-    }
-  }
-  thread_pool_notify(p->tp);
-  thread_pool_notify(p->tp);
-
-  free(p);
-}
-
-bool thread_pool_stop(thread_pool_t* const tp) {
-  if(tp != NULL && tp->running) {
-    tp->running = false;
-    thread_pool_notify(tp);
-
-    for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
-      pthread_join(tp->pool[i], NULL);
-    }
-  }
-  return false;
-}
-
 bool thread_pool_create(thread_pool_t** const tp) {
   if(tp != NULL) {
     *tp = malloc(sizeof(thread_pool_t));
@@ -85,4 +59,30 @@ bool thread_pool_notify(thread_pool_t* const tp) {
     return true;
   }
   return false;
+}
+
+bool thread_pool_stop(thread_pool_t* const tp) {
+  if(tp != NULL && tp->running) {
+    tp->running = false;
+    thread_pool_notify(tp);
+
+    for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
+      pthread_join(tp->pool[i], NULL);
+    }
+  }
+  return false;
+}
+
+void thread_pool_work_wrapper(thread_pool_param_t* const p) {
+  while(p->tp->running) {
+    sem_wait(&p->tp->sem);
+
+    if(p->tp->running) {
+      p->tp->fun(p->id, p->tp->arg);
+    }
+  }
+  thread_pool_notify(p->tp);
+  thread_pool_notify(p->tp);
+
+  free(p);
 }

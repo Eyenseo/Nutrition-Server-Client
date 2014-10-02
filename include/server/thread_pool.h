@@ -21,15 +21,14 @@ typedef struct {
   thread_pool_t* tp;
 } thread_pool_param_t;
 
-void thread_pool_work_wrapper(thread_pool_param_t* const p);
-
-bool thread_pool_stop(thread_pool_t* const tp);
-
 bool thread_pool_create(thread_pool_t** const tp);
 bool thread_pool_destroy(thread_pool_t* const tp);
 
 bool thread_pool_start(thread_pool_t* const tp, void (*fun)(int, void*),
                        void* arg);
-
+bool thread_pool_stop(thread_pool_t* const tp);
 bool thread_pool_notify(thread_pool_t* const tp);
+
+void thread_pool_work_wrapper(thread_pool_param_t* const p);
+
 #endif

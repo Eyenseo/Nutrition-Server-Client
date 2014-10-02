@@ -16,6 +16,45 @@ void* get_ip4_or_ip6(const struct sockaddr* const sa) {
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+bool save_send(int fd, const char* const m, int const len) {
+  int total = 0;
+  int bytesleft = len;
+  int n;
+
+  while(total < len) {
+    n = send(fd, m + total, bytesleft, 0);
+    if(n == -1) {
+      printf("BAD SEND\n");
+      return false;
+    }
+    total += n;
+    bytesleft -= n;
+  }
+
+  return true;
+}
+
+bool send_number(int const fd, int n) {
+  char buf[NETWORKING_INT_LENGTH + 1];
+
+  sprintf(buf, "%" STRGIFY(NETWORKING_INT_LENGTH) "d", n);
+  return save_send(fd, buf, NETWORKING_INT_LENGTH);
+}
+
+bool recv_number(int const fd, int* const n) {
+  char buf[NETWORKING_INT_LENGTH + 1];
+  int b_rec;
+
+  if((b_rec = recv(fd, buf, NETWORKING_INT_LENGTH, 0)) == -1 || b_rec == 0) {
+    perror("recv");
+    return false;
+  }
+  buf[b_rec] = '\0';
+
+  sscanf(buf, "%d", n);
+  return true;
+}
+
 bool send_cstr(int const fd, const char* const s) {
   int len = strlen(s);
 
@@ -42,27 +81,6 @@ bool recv_cstr(int const fd, char** const s) {
   }
 
   return false;
-}
-
-bool send_number(int const fd, int n) {
-  char buf[NETWORKING_INT_LENGTH + 1];
-
-  sprintf(buf, "%" STRGIFY(NETWORKING_INT_LENGTH) "d", n);
-  return save_send(fd, buf, NETWORKING_INT_LENGTH);
-}
-
-bool recv_number(int const fd, int* const n) {
-  char buf[NETWORKING_INT_LENGTH + 1];
-  int b_rec;
-
-  if((b_rec = recv(fd, buf, NETWORKING_INT_LENGTH, 0)) == -1 || b_rec == 0) {
-    perror("recv");
-    return false;
-  }
-  buf[b_rec] = '\0';
-
-  sscanf(buf, "%d", n);
-  return true;
 }
 
 bool send_cstr_arr(int const fd, char** const r, int const len) {
@@ -94,24 +112,6 @@ bool recv_cstr_arr(int const fd, char*** const r, int* const len) {
     return true;
   }
   return false;
-}
-
-bool save_send(int fd, const char* const m, int const len) {
-  int total = 0;
-  int bytesleft = len;
-  int n;
-
-  while(total < len) {
-    n = send(fd, m + total, bytesleft, 0);
-    if(n == -1) {
-      printf("BAD SEND\n");
-      return false;
-    }
-    total += n;
-    bytesleft -= n;
-  }
-
-  return true;
 }
 
 #undef STRGIFY

@@ -21,9 +21,9 @@ typedef struct {
 } food_t;
 
 bool food_create(food_t** const foo);
-void food_clear_cstr(char* const s);
-bool food_deserialize(const char* const arr, food_t** const f);
 void food_destroy(food_t* const foo);
 bool food_serialize(const food_t* const f, char* const arr);
+bool food_deserialize(const char* const arr, food_t** const f);
+void food_clear_cstr(char* const s);
 
 #endif

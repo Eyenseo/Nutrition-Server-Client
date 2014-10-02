@@ -21,7 +21,6 @@ static const char* const CLIENT_OPTIONS
       " 'q' Quit the program\n"
       " 'h' Show this help\n";
 
-
 void client_create(client_t** const c, const char* const ip,
                    const char* const port) {
   *c = malloc(sizeof(client_t));
@@ -216,18 +215,11 @@ bool client_ui_search(client_t* const c) {
   return suc;
 }
 
-void client_ui_get_uint(const char* const text, int* const n) {
-  bool good = false;
-
-  while(!good) {
+void client_ui_get_cstring(const char* const text, char** const s) {
+  *s = malloc(sizeof(char) * FOOD_DATA_TEXT_LENGTH);
+  do {
     printf("%s\n> ", text);
-
-    if(scanf(" %d", n) != 0 && *n >= 0) {
-      good = true;
-    } else {
-      scanf(" %*[^\n]");  // clean stdin
-    }
-  }
+  } while(scanf(" %[^\n]", *s) == 0 || strlen(*s) < 1);
 }
 
 void client_ui_get_ufloat(const char* const text, float* const n) {
@@ -244,11 +236,18 @@ void client_ui_get_ufloat(const char* const text, float* const n) {
   }
 }
 
-void client_ui_get_cstring(const char* const text, char** const s) {
-  *s = malloc(sizeof(char) * FOOD_DATA_TEXT_LENGTH);
-  do {
+void client_ui_get_uint(const char* const text, int* const n) {
+  bool good = false;
+
+  while(!good) {
     printf("%s\n> ", text);
-  } while(scanf(" %[^\n]", *s) == 0 || strlen(*s) < 1);
+
+    if(scanf(" %d", n) != 0 && *n >= 0) {
+      good = true;
+    } else {
+      scanf(" %*[^\n]");  // clean stdin
+    }
+  }
 }
 
 #undef STRGIFY

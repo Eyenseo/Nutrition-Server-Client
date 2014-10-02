@@ -19,10 +19,9 @@ typedef struct {
 } int_queue_t;
 
 bool int_queue_create(int_queue_t** const q);
-
 void int_queue_destroy(int_queue_t* const q);
-bool int_queue_push_back(int_queue_t* const q, int data);
 
+bool int_queue_push_back(int_queue_t* const q, int data);
 bool int_queue_pop(int_queue_t* const q, int* const data);
 
 #endif
