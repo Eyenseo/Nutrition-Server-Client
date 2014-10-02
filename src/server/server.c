@@ -33,9 +33,7 @@ void server_worker(int id, server_t* s) {
             client = false;
             break;
           case SEARCH:
-            printf("Start Search\n");
             client = server_worker_search(s, client_fd);
-            printf("End Search\n");
             if(!client) {
               printf("Client %d disconnected ungracefully\n", client_fd);
             }
@@ -116,8 +114,6 @@ bool server_worker_search(server_t* const s, int client_fd) {
     for(int i = 0; i < q_len; ++i) {
       int n;
       int_queue_pop(q, &n);
-
-      printf("i: %d\tn: %d\n", i, n);
 
       arr[i] = calloc(sizeof(char), FOOD_DATA_SERIALIZED_LENGTH);
 

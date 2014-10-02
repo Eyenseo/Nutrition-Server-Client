@@ -87,13 +87,19 @@ bool client_ui(client_t* const c) {
   int intent;
 
   if(recv_number(c->server_fd, &intent) && intent == START) {
-    char o;
+    char oe[3];
+    oe[1] = '\0';
 
     while(c->running) {
       printf("\nWhat do you want to do?\n> ");
-      scanf(" %c", &o);
+      scanf(" %2[^\n]%*[^\n]", oe);
 
-      switch(o) {
+      if(oe[1] != '\0') {
+        oe[1] = '\0';
+        continue;
+      }
+
+      switch(oe[0]) {
       default:
         // TODO HELP
         break;
@@ -140,7 +146,6 @@ bool client_ui_add(client_t* const c) {
                      &f->carbo);
   client_ui_get_uint("Please enter the protein of the food data: [g]",
                      &f->protein);
-
   if(send_number(c->server_fd, ADD)) {
     int rec;
     char buf[sizeof(char) * 2 * FOOD_DATA_TEXT_LENGTH + 6 * FOOD_DATA_INT_LENGTH

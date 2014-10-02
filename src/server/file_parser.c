@@ -138,7 +138,7 @@ bool file_parser_food_array_to_file(const char* const filename,
     for(int i = 0; i < length; ++i) {
       const food_t* const foo = arr[i];
 
-      fprintf(f, "%s,%s,%.3f,%d,%d,%d,%d", foo->name, foo->measure, foo->weight,
+      fprintf(f, "%s,%s,%.3f,%d,%d,%d,%d\n", foo->name, foo->measure, foo->weight,
               foo->k_cal, foo->fat, foo->carbo, foo->protein);
     }
 

@@ -29,7 +29,7 @@ void food_destroy(food_t* const foo) {
 
 bool food_serialize(const food_t* const f, char* const arr) {
   if(f != NULL && arr != NULL) {
-    sprintf(arr, "%10d%10d%10d%10d%10d%10d%14.3f%s%s", f->carbo, f->fat,
+    sprintf(arr, "%10d%10d%10d%10ld%10ld%10d%14.3f%s%s", f->carbo, f->fat,
             f->k_cal, strlen(f->measure), strlen(f->name), f->protein,
             f->weight, f->measure, f->name);
     return true;
