@@ -14,6 +14,13 @@
 #define CLIENT_DEFAULT_IP "127.0.0.1"
 #define CLIENT_DEFAULT_PORT "12345"
 
+static const char* const CLIENT_OPTIONS
+    = "Options:\n"
+      " 'a' Add a food data set to the database\n"
+      " 's' Search the database for food\n"
+      " 'q' Quit the program\n"
+      " 'h' Show this help\n";
+
 
 void client_create(client_t** const c, const char* const ip,
                    const char* const port) {
@@ -23,13 +30,13 @@ void client_create(client_t** const c, const char* const ip,
   if(ip == NULL) {
     (*c)->server_ip = CLIENT_DEFAULT_IP;
   } else {
-    (*c)->server_ip = NULL;
+    (*c)->server_ip = ip;
   }
 
   if(port == NULL) {
     (*c)->server_port = CLIENT_DEFAULT_PORT;
   } else {
-    (*c)->server_port = NULL;
+    (*c)->server_port = port;
   }
 }
 
@@ -92,6 +99,8 @@ bool client_ui(client_t* const c) {
     char oe[3];
     oe[1] = '\0';
 
+    printf("\n%s\n", CLIENT_OPTIONS);
+
     while(c->running) {
       printf("\nWhat do you want to do?\n> ");
       scanf(" %2[^\n]%*[^\n]", oe);
@@ -103,7 +112,7 @@ bool client_ui(client_t* const c) {
 
       switch(oe[0]) {
       default:
-        // TODO HELP
+        printf("%s\n", CLIENT_OPTIONS);
         break;
       case 'a':
         c->running = client_ui_add(c);

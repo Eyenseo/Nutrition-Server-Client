@@ -22,6 +22,7 @@ add_definitions(
   -Wall
   -Wextra
   -std=gnu99
+  -O2
 )
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
 

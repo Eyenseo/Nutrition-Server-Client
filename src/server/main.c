@@ -4,13 +4,30 @@
 
 #include "server/server.h"
 
+
+static const char* const SERVER_MAIN_HELP = "Usage:\n"
+                                            "  ./server [PORT]\n"
+                                            "Parameter:\n"
+                                            "  PORT: 12345 (default)\n"
+                                            "Example:\n"
+                                            "  ./server 54321\n\n";
+
 int main(int argc, char const* argv[]) {
   server_t* s;
   sigset_t mask;
   siginfo_t info;
   struct sigaction action;
 
-  server_create(&s, "../calories.csv", NULL);
+  if(argc == 1) {
+    server_create(&s, "../calories.csv", NULL);
+  } else if(argc == 2) {
+    server_create(&s, "../calories.csv", argv[1]);
+  } else {
+    printf("%s\n", SERVER_MAIN_HELP);
+    exit(1);
+  }
+
+  printf("Press CTRL+C to shutdown the server\n");
 
   sigemptyset(&mask);
   sigaddset(&mask, SIGINT);
