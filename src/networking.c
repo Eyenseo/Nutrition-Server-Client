@@ -31,6 +31,7 @@ bool recv_cstr(int const fd, char** const s) {
 
     if((b_rec = recv(fd, *s, len, 0)) == -1) {
       perror("recv");
+      free(*s);
       return false;
     }
     (*s)[b_rec] = '\0';
@@ -60,7 +61,7 @@ bool recv_number(int const fd, int* const n) {
   return true;
 }
 
-bool send_cstr_arr(int const fd, const char** const r, int const len) {
+bool send_cstr_arr(int const fd, char** const r, int const len) {
   if(send_number(fd, len)) {
     for(int i = 0; i < len; ++i) {
       if(!send_cstr(fd, r[i])) {
@@ -78,6 +79,11 @@ bool recv_cstr_arr(int const fd, char*** const r, int* const len) {
 
     for(int i = 0; i < *len; ++i) {
       if(!recv_cstr(fd, &(*r)[i])) {
+        for(int j = 0; j < i; ++j) {
+          free((*r)[j]);
+          free((*r)[j]);
+        }
+        free(*r);
         return false;
       }
     }

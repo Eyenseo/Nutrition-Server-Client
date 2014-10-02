@@ -1,10 +1,10 @@
 set(
   SERVER_SOURCES
     ${SERVER_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/server.c
     ${CMAKE_CURRENT_SOURCE_DIR}/file_parser.c
     ${CMAKE_CURRENT_SOURCE_DIR}/int_queue.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/server.c
     ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.c
 
   PARENT_SCOPE

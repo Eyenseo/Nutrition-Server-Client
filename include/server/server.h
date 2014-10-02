@@ -2,14 +2,12 @@
 #define SERVER_H
 
 #include <semaphore.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+#include <netdb.h>
 
 #include "food_data.h"
 #include "file_parser.h"
 #include "int_queue.h"
 #include "thread_pool.h"
-#include "networking.h"
 
 #define DEFAULT_PORT "12345"
 #define BACKLOG 10
@@ -23,9 +21,10 @@ typedef struct {
   const char* db_filename;
   const char* port;
 
+  pthread_cond_t write_cond;
   pthread_mutex_t read_mutex;
   pthread_mutex_t write_mutex;
-  sem_t read_sem;
+  int read_count;
 
   int server_fd;
   struct addrinfo hints;
@@ -38,10 +37,19 @@ typedef struct {
 bool server_create(server_t** const sp, const char* const db_filename,
                    const char* const port);
 void server_destroy(server_t* const s);
-bool server_init(server_t* const s);
+
 bool server_start(server_t* const s);
+bool server_start_init(server_t* const s);
+void server_start_listen(server_t* const s);
 bool server_stop(server_t* const s);
-void server_listen(server_t* const s);
+
 void server_worker(int id, server_t* s);
+bool server_worker_add(server_t* const s, int client_fd);
+bool server_worker_search(server_t* const s, int client_fd);
+
+void server_read_start(server_t* const s);
+void server_read_end(server_t* const s);
+void server_write_start(server_t* const s);
+void server_write_end(server_t* const s);
 
 #endif

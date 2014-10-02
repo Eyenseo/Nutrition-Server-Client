@@ -1,14 +1,124 @@
 #include "server/server.h"
 
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#include "networking.h"
+
 void server_worker(int id, server_t* s) {
   if(s != NULL && s->running) {
     int client_fd;
     if(int_queue_pop(s->queue, &client_fd)) {
+      bool client = true;
+      s->used_fds[id] = client_fd;
 
+      while(s->running && client) {
+        network_intent_t ni;
+
+        if(recv_number(client_fd, &ni) && s->running) {
+          switch(ni) {
+          default:
+            printf("Received bad intent from client %d\n", client_fd);
+            break;
+          case ADD:
+            server_worker_add(s, client_fd);
+            break;
+          case QUIT:
+            printf("Client %d disconnected gracefully\n", client_fd);
+            client = false;
+            break;
+          case SEARCH:
+            server_worker_search(s, client_fd);
+          }
+        }
+      }
 
       shutdown(client_fd, 3);  // Block read and write
     }
   }
+}
+
+bool server_worker_add(server_t* const s, int client_fd) {
+  char* buff;
+
+  if(recv_cstr(client_fd, &buff)) {
+    food_t* f;
+    if(food_deserialize(buff, &f)) {
+      server_write_start(s);
+
+      food_t** db_new = malloc(sizeof(food_t*) * (s->db_size + 1));
+      bool once = true;
+      for(int i = 0, j = 0; i < s->db_size; ++i, ++j) {
+        if(once && strncasecmp(f->name, s->db[i]->name, f->name_length) < 0) {
+          db_new[j] = f;
+          ++j;
+          once = false;
+        }
+        db_new[j] = s->db[i];
+      }
+      if(once) {
+        db_new[s->db_size] = f;
+      }
+      ++s->db_size;
+      free(s->db);
+      s->db = db_new;
+      server_write_end(s);
+
+      send_number(client_fd, SUCCESS);
+      return true;
+    }
+    free(buff);
+    send_number(client_fd, FAILIOR);
+  }
+
+  return false;
+}
+
+bool server_worker_search(server_t* const s, int client_fd) {
+  bool result = false;
+  char* buff;
+
+  if(recv_cstr(client_fd, &buff)) {
+    int len = strlen(buff);
+    int q_len = 0;
+    int_queue_t* q;
+    int_queue_create(&q);
+
+    server_read_start(s);
+
+
+    for(int i = 0; i < s->db_size; ++i) {
+      const char* const n = s->db[i]->name;
+
+      if(strncasecmp(buff, n, len) == 0) {
+        if(n[len] == '\0' || n[len] == '\t' || n[len] == ' ') {
+          int_queue_push_back(q, i);
+          ++q_len;
+        }
+      }
+    }
+
+    char** arr = malloc(sizeof(char*) * q_len);
+    for(int i = 0; i < q_len; ++i) {
+      int n;
+      int_queue_pop(q, &n);
+
+      food_serialize(s->db[n], &(*arr)[i]);
+    }
+    server_read_end(s);
+
+    if(send_cstr_arr(client_fd, arr, q_len)) {
+      result = true;
+    }
+
+    int_queue_destroy(q);
+
+    for(int i = 0; i < q_len; ++i) {
+      free(arr[i]);
+    }
+    free(arr);
+  }
+  return result;
 }
 
 void server_destroy(server_t* const s) {
@@ -18,7 +128,7 @@ void server_destroy(server_t* const s) {
 
       pthread_mutex_destroy(&s->read_mutex);
       pthread_mutex_destroy(&s->write_mutex);
-      sem_destroy(&s->read_sem);
+      pthread_cond_destroy(&s->write_cond);
 
       for(int i = 0; i < s->db_size; ++i) {
         food_destroy(s->db[i]);
@@ -39,9 +149,7 @@ bool server_stop(server_t* const s) {
     }
 
     shutdown(s->server_fd, 2);  // Block read and write
-    printf("Ping-0\n");
     pthread_join(s->listener, NULL);
-    printf("Ping-1\n");
     thread_pool_stop(s->tp);
 
     thread_pool_destroy(s->tp);
@@ -51,7 +159,6 @@ bool server_stop(server_t* const s) {
   }
   return false;
 }
-
 
 bool server_create(server_t** const sp, const char* const db_filename,
                    const char* const port) {
@@ -70,7 +177,7 @@ bool server_create(server_t** const sp, const char* const db_filename,
     if(file_to_food_array(db_filename, &s->db, &s->db_size)) {
       pthread_mutex_init(&s->read_mutex, NULL);
       pthread_mutex_init(&s->write_mutex, NULL);
-      sem_init(&s->read_sem, 0, 0);
+      pthread_cond_init(&s->write_cond, NULL);
     }
   }
   return false;
@@ -83,14 +190,14 @@ bool server_start(server_t* const s) {
       s->running = true;
 
       thread_pool_start(s->tp, (void (*)(int, void*))server_worker, s);
-      server_init(s);
+      server_start_init(s);
       return true;
     }
   }
   return false;
 }
 
-void server_listen(server_t* const s) {
+void server_start_listen(server_t* const s) {
   char their_addr_hum[INET6_ADDRSTRLEN];
   socklen_t sin_size;
   struct sockaddr_storage their_addr;  // For fancy status
@@ -110,7 +217,8 @@ void server_listen(server_t* const s) {
       inet_ntop(their_addr.ss_family,
                 get_ip4_or_ip6((struct sockaddr*)&their_addr), their_addr_hum,
                 sizeof their_addr_hum);
-      printf("server: got connection from %s\n", their_addr_hum);
+      printf("server: got connection from %s as client %d\n", their_addr_hum,
+             new_fd);
 
       int_queue_push_back(s->queue, new_fd);
       thread_pool_notify(s->tp);
@@ -118,7 +226,7 @@ void server_listen(server_t* const s) {
   }
 }
 
-bool server_init(server_t* const s) {
+bool server_start_init(server_t* const s) {
   struct addrinfo hints;
   struct addrinfo* servinfo;
   struct addrinfo* p;
@@ -172,7 +280,37 @@ bool server_init(server_t* const s) {
 
   printf("server: waiting for connections...\n");
 
-  pthread_create(&s->listener, NULL, (void* (*)(void*))server_listen, s);
+  pthread_create(&s->listener, NULL, (void* (*)(void*))server_start_listen, s);
 
   return true;
+}
+
+void server_read_start(server_t* const s) {
+  pthread_mutex_lock(&s->write_mutex);
+  pthread_mutex_lock(&s->read_mutex);
+  ++s->read_count;
+  pthread_mutex_unlock(&s->read_mutex);
+  pthread_mutex_unlock(&s->write_mutex);
+}
+
+void server_read_end(server_t* const s) {
+  pthread_mutex_lock(&s->read_mutex);
+  --s->read_count;
+  pthread_cond_signal(&s->write_cond);
+  pthread_mutex_unlock(&s->read_mutex);
+}
+
+void server_write_start(server_t* const s) {
+  pthread_mutex_lock(&s->write_mutex);
+  pthread_mutex_lock(&s->read_mutex);
+
+  while(s->read_count != 0) {
+    pthread_cond_wait(&s->write_cond, &s->read_mutex);
+  }
+
+  pthread_mutex_unlock(&s->read_mutex);
+}
+
+void server_write_end(server_t* const s) {
+  pthread_mutex_unlock(&s->write_mutex);
 }
