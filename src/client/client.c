@@ -86,6 +86,8 @@ bool client_connect(client_t* const c) {
 bool client_ui(client_t* const c) {
   int intent;
 
+  printf("Waiting for server ...\n");
+
   if(recv_number(c->server_fd, &intent) && intent == START) {
     char oe[3];
     oe[1] = '\0';

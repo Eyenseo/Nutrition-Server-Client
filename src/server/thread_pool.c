@@ -1,10 +1,10 @@
 #include "server/thread_pool.h"
 
+#include <stdio.h>
+
 void thread_pool_work_wrapper(thread_pool_param_t* const p) {
   while(p->tp->running) {
-    pthread_mutex_lock(&p->tp->mutex);
-    pthread_cond_wait(&p->tp->cond, &p->tp->mutex);
-    pthread_mutex_unlock(&p->tp->mutex);
+    sem_wait(&p->tp->sem);
 
     if(p->tp->running) {
       p->tp->fun(p->id, p->tp->arg);
@@ -32,8 +32,7 @@ bool thread_pool_create(thread_pool_t** const tp) {
   if(tp != NULL) {
     *tp = malloc(sizeof(thread_pool_t));
 
-    pthread_mutex_init(&(*tp)->mutex, NULL);
-    pthread_cond_init(&(*tp)->cond, NULL);
+    sem_init(&(*tp)->sem, 0, 0);
     (*tp)->running = false;
 
     return true;
@@ -45,8 +44,7 @@ bool thread_pool_destroy(thread_pool_t* const tp) {
   if(tp != NULL) {
     thread_pool_stop(tp);
 
-    pthread_mutex_destroy(&tp->mutex);
-    pthread_cond_destroy(&tp->cond);
+    sem_destroy(&tp->sem);
 
     free(tp);
 
@@ -62,6 +60,12 @@ bool thread_pool_start(thread_pool_t* const tp, void (*fun)(int, void*),
     tp->running = true;
     tp->arg = arg;
 
+    int val;
+    sem_getvalue(&tp->sem, &val);
+    while(val != 0) {
+      sem_getvalue(&tp->sem, &val);
+    }
+
     for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
       thread_pool_param_t* p = malloc(sizeof(thread_pool_param_t));
       p->id = i;
@@ -75,10 +79,8 @@ bool thread_pool_start(thread_pool_t* const tp, void (*fun)(int, void*),
 }
 
 bool thread_pool_notify(thread_pool_t* const tp) {
-  if(tp != NULL && tp->running == true) {
-    pthread_mutex_lock(&tp->mutex);
-    pthread_cond_signal(&tp->cond);
-    pthread_mutex_unlock(&tp->mutex);
+  if(tp != NULL) {
+    sem_post(&tp->sem);
 
     return true;
   }

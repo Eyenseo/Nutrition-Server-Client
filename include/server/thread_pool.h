@@ -2,6 +2,7 @@
 #define THREAD_POOL_H
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -9,8 +10,7 @@
 
 typedef struct {
   pthread_t pool[THREAD_POOL_SIZE];
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
+  sem_t sem;
   void (*fun)(int, void*);
   void* arg;
   bool running;

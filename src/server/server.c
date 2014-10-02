@@ -163,13 +163,12 @@ void server_destroy(server_t* const s) {
 bool server_stop(server_t* const s) {
   if(s != NULL && s->running) {
     s->running = false;
-    s->tp->running = false;
 
     for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
       shutdown(s->used_fds[i], 2);  // Block read and write
     }
-
     shutdown(s->server_fd, 2);  // Block read and write
+
     pthread_join(s->listener, NULL);
     thread_pool_stop(s->tp);
 
