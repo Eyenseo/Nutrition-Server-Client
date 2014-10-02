@@ -17,7 +17,7 @@ void server_worker(int id, server_t* s) {
       while(s->running && client) {
         network_intent_t ni;
 
-        if((client = recv_number(client_fd, &ni)) && s->running) {
+        if((client = recv_number(client_fd, (int*)&ni)) && s->running) {
           switch(ni) {
           default:
             printf("Received bad intent '%d' from client %d\n", ni, client_fd);
@@ -103,7 +103,11 @@ bool server_worker_search(server_t* const s, int client_fd) {
       const char* const n = s->db[i]->name;
 
       if(strncasecmp(buf, n, len) == 0) {
-        if(n[len] == '\0' || n[len] == '\t' || n[len] == ' ') {
+        const char c = n[len];
+        if(c == '\0' || c == ' ' || c == '.' || c == ',' || c == '-' || c == '+'
+           || c == '_' || c == '~' || c == '/' || c == '&' || c == '|'
+           || c == ':' || c == ';' || c == '(' || c == ')' || c == '['
+           || c == ']' || c == '{' || c == '}') {
           int_queue_push_back(q, i);
           ++q_len;
         }
