@@ -75,7 +75,7 @@ bool cstring_to_food(const char* const line, food_t** const food_p) {
 }
 
 
-bool file_to_food_array(const char* const filename, food_t*** arr_p,
+bool file_to_food_array(const char* const filename, food_t*** const arr_p,
                         int* const length) {
 
   if(filename != NULL && arr_p != NULL && length != NULL) {
@@ -112,6 +112,34 @@ bool file_to_food_array(const char* const filename, food_t*** arr_p,
       c = fgetc(f);  // read new line or EOF
     }
     free(buff);
+
+    fclose(f);
+
+    return true;
+  }
+  return false;
+}
+
+
+bool food_array_to_file(const char* const filename, food_t** const arr,
+                        int const length) {
+  if(filename != NULL && arr != NULL) {
+    FILE* f;
+
+    f = fopen(filename, "wb");
+
+    if(f == NULL) {
+      perror("The following error occurred in line " STRGIFY(
+          __FILE__) ":" STRGIFY(__LINE__));
+      return false;
+    }
+
+    for(int i = 0; i < length; ++i) {
+      const food_t* const foo = arr[i];
+
+      fprintf(f, "%s,%s,%.3f,%d,%d,%d,%d", foo->name, foo->measure, foo->weight,
+              foo->k_cal, foo->fat, foo->carbo, foo->protein);
+    }
 
     fclose(f);
 
