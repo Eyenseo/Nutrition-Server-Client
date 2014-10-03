@@ -37,6 +37,7 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   add_definitions(
     -Wno-unknown-pragmas
+    -Wno-unused-result
   )
 endif()
 

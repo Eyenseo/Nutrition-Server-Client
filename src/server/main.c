@@ -19,9 +19,19 @@ int main(int argc, char const* argv[]) {
   struct sigaction action;
 
   if(argc == 1) {
-    server_create(&s, "../calories.csv", NULL);
+    if(!server_create(&s, "../calories.csv", NULL)) {
+      if(!server_create(&s, "./calories.csv", NULL)) {
+        printf("File '%s' fot found\n", "calories.csv");
+        exit(1);
+      }
+    }
   } else if(argc == 2) {
-    server_create(&s, "../calories.csv", argv[1]);
+    if(!server_create(&s, "../calories.csv", argv[1])) {
+      if(!server_create(&s, "./calories.csv", argv[1])) {
+        printf("File '%s' fot found\n", "calories.csv");
+        exit(1);
+      }
+    }
   } else {
     printf("%s\n", SERVER_MAIN_HELP);
     exit(1);

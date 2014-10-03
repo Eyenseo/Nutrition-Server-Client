@@ -27,7 +27,7 @@ bool server_create(server_t** const sp, const char* const db_filename,
 
       return true;
     }
-    free(sp);
+    free(*sp);
   }
   return false;
 }

@@ -25,7 +25,7 @@ bool file_parser_file_to_food_array(const char* const filename,
     int i = 0;
     char* buff = malloc(sizeof(char) * FP_MAX_LINE_LENGTH + 1);
 
-    while(i < *length) {
+    while(i < *length && c != EOF) {
       if(EOF == fscanf(f, "%" STRGIFY(FP_MAX_LINE_LENGTH) "[^\n]", buff)) {
         perror("The following error occurred" STRGIFY(__FILE__) ":" STRGIFY(
             __LINE__));
@@ -47,7 +47,6 @@ bool file_parser_file_to_food_array(const char* const filename,
   return false;
 }
 
-
 bool file_parser_food_array_to_file(const char* const filename,
                                     food_t** const arr, int const length) {
   if(filename != NULL && arr != NULL) {
@@ -60,6 +59,23 @@ bool file_parser_food_array_to_file(const char* const filename,
           __FILE__) ":" STRGIFY(__LINE__));
       return false;
     }
+    fprintf(
+        f, "# Do not modify this file\n"
+           "#\n"
+           "# Comment lines start with a #\n"
+           "#\n"
+           "# These are the calories information for various food items\n"
+           "#\n"
+           "# The names of the fields are\n"
+           "# Food, Measure, Weight (g), kCal, Fat (g), Carbo(g), Protein (g)\n"
+           "#\n"
+           "# Note: Food name may contain comma(s)\n"
+           "#\n"
+           "# Source:USDA Nutrient Database for Standard Reference - Release "
+           "12 - Pocket v1.1 - www.nal.usda.gov/fnic/foodcomp\n"
+           "#\n"
+        );
+
 
     for(int i = 0; i < length; ++i) {
       const food_t* const foo = arr[i];

@@ -44,7 +44,7 @@ bool food_deserialize(const char* const arr, food_t** const f) {
     int measure_length;
     int name_length;
 
-    sscanf(arr, "%10d%10d%10d%10d%10d%10d%13f%*[^\n\0]", &foo->carbo, &foo->fat,
+    sscanf(arr, "%10d%10d%10d%10d%10d%10d%13f%*[^\n]", &foo->carbo, &foo->fat,
            &foo->k_cal, &measure_length, &name_length, &foo->protein,
            &foo->weight);
 
