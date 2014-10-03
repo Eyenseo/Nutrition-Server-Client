@@ -1,0 +1,132 @@
+\documentclass[english,a4paper,12pt]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage{datetime}
+\usepackage[bookmarks,colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage[automark,headsepline]{scrlayer-scrpage}
+\usepackage[vscale=0.75,vmarginratio={2:3},heightrounded]{geometry} % less margin at bottom
+\usepackage{minted}
+
+%---------------------------------
+% Meta data
+%---------------------------------
+\hypersetup{pdfauthor={Roland Jäger},
+            pdftitle={Distributed Communication},
+            pdfsubject={Systems Programming, Assignment 2},
+            pdfkeywords={Distributed Communication, Systems Programming,Assignment 2, Queensland University of Technology}}
+
+%---------------------------------
+% Fancy header
+%---------------------------------
+\clearpairofpagestyles
+\lohead{\headmark}
+\lohead{\headmark}
+\cofoot[\pagemark]{\pagemark}
+\pagestyle{scrheadings}
+
+%---------------------------------
+% Start page count
+%---------------------------------
+\setcounter{page}{0}
+
+%---------------------------------
+% Minted color scheme
+%---------------------------------
+\usemintedstyle{borland}
+
+%---------------------------------
+% Horizontal line for title page
+%---------------------------------
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+%---------------------------------
+% href Link as foot note
+%---------------------------------
+\newcommand\fnurl[2]{
+  \href{#2}{#1}\footnote{\url{#2}}
+}
+%---------------------------------
+% Due date for title page
+%---------------------------------
+\newdate{dueDate}{21}{10}{2014}
+
+\begin{document}
+\begin{titlepage}
+  \center % Center everything on the page
+
+  %---------------------------------
+  % HEADING SECTIONS
+  %---------------------------------
+  ~\\[2cm]
+  \textsc{\LARGE Queensland University of Technology}\\[1.5cm] % Name of your university/college
+  \textsc{\Large Systems Programming}\\[0.5cm] % Major heading such as course name
+  \textsc{\large Assignment 2}\\[2cm] % Minor heading such as course title
+
+  %---------------------------------
+  % TITLE SECTION
+  %---------------------------------
+  \HRule \\[1cm]
+  {
+    \huge \bfseries Distributed Communication
+  }\\[0.5cm] % Title of your document
+  \HRule \\[1.5cm]
+
+  %---------------------------------
+  % AUTHOR SECTION
+  %---------------------------------
+  \begin{minipage}{0.4\textwidth}
+    \begin{flushleft} \large
+      \emph{Author:}\\
+      Roland  \textsc{Jäger} \\% Your name
+      \small n9247220
+    \end{flushleft}
+  \end{minipage}
+  ~
+  \begin{minipage}{0.4\textwidth}
+    \begin{flushright} \large
+      \emph{Due Date:} \\
+      \shortdate\displaydate{dueDate}\\~
+    \end{flushright}
+  \end{minipage}\\[4cm]
+
+  %---------------------------------
+  % DATE SECTION
+  %---------------------------------
+  \vspace*{\fill}
+  {
+    \large \today
+  }
+\end{titlepage}
+
+\section{About the Programs}
+  The programs full fill the tasks one, two and three without exceptions.
+
+  \subsection{Deviations}
+    \begin{itemize}
+      \item
+        For the server the signal handling is not done using the function \linebreak \mintinline{c}{void (*signal(int sig, void (*func)(int)))(int);}  because of thread safety. Also the usage of a signal to handle termination is optional -- from the programs view, as the accept loop is in a thread and with that a normal ui interaction is possible.
+      \item
+        The server features a queue that will always accept new clients, the queue is fed to a thread pool that will then answer client requests -- clients will wait until they receive a start signal from the server.
+      \item
+        Both, the server and client have a default port and IP address to the programs can be started without arguments for convenience purpose.
+    \end{itemize}
+
+  \subsection{Client Arguments}
+    \texttt{
+      ./client [IP-ADDRESS] [PORT]
+    }
+    \begin{itemize}
+      \item[] The \texttt{IP-ADDRESS} Argument is optional (but is needed to specify \texttt{PORT}) and defaults to \texttt{127.0.0.1}
+      \item[] The \texttt{PORT} Argument is optional and defaults to \texttt{12345}
+    \end{itemize}
+  \subsection{Server Arguments}
+    \texttt{
+      ./server [PORT]
+    }
+    \begin{itemize}
+      \item[] The \texttt{PORT} Argument is optional and defaults to \texttt{12345}
+    \end{itemize}
+
+\section{Remarks}
+  There are similarities in my network code and the code one can find in \fnurl{Beej's Guide to Network Programming}{http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html} as this was the main information resource regarding the network aspect of the assignment.
+
+\end{document}

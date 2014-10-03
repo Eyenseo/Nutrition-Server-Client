@@ -28,6 +28,7 @@ build/
 *.mtc
 *.mtc1
 *.out
+*.fdb_latexmk
 *.synctex.gz
 
 # Sublime
