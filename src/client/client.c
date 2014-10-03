@@ -173,7 +173,6 @@ bool client_ui_add(client_t* const c) {
   return suc;
 }
 
-
 bool client_ui_search(client_t* const c) {
   char* s;
   char** res;
