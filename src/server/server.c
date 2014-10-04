@@ -161,11 +161,12 @@ bool server_stop(server_t* const s) {
 
     for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
       // Block read and write - close does not do that
-      shutdown(s->used_fds[i], 2);
+      shutdown(s->used_fds[i], SHUT_RDWR);
       close(s->used_fds[i]);  // close socket
     }
-    shutdown(s->server_fd, 2);  // Block read and write - close does not do that
-    close(s->server_fd);        // close socket
+    // Block read and write - close does not do that
+    shutdown(s->server_fd, SHUT_RDWR);
+    close(s->server_fd);  // close socket
 
     pthread_join(s->listener, NULL);
     thread_pool_stop(s->tp);

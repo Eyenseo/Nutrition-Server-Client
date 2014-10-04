@@ -1,9 +1,10 @@
 #include "networking.h"
 
-#include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define STRGIFY(x) STRGIFY2(x)
 #define STRGIFY2(x) #x
@@ -29,6 +30,13 @@ bool save_send(int fd, const char* const m, int const len) {
     }
     total += n;
     bytesleft -= n;
+  }
+
+  // Check if socket is open send is not reliable
+  char c;
+  n = recv(fd, &c, 1, MSG_PEEK | MSG_DONTWAIT);
+  if(n == 0) {
+    return false;
   }
 
   return true;
@@ -76,6 +84,10 @@ bool recv_cstr(int const fd, char** const s) {
 
     if((b_rec = recv(fd, *s, len, 0)) == -1) {
       perror("recv");
+      free(*s);
+      return false;
+    }
+    if(b_rec == 0) {
       free(*s);
       return false;
     }

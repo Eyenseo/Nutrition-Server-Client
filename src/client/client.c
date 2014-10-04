@@ -20,7 +20,7 @@ static const char* const CLIENT_OPTIONS
       " 'a' Add a food data set to the database\n"
       " 's' Search the database for food\n"
       " 'q' Quit the program\n"
-      " 'h' Show this help\n";
+      " 'h' Show this help";
 
 void client_create(client_t** const c, const char* const ip,
                    const char* const port) {
@@ -41,8 +41,9 @@ void client_create(client_t** const c, const char* const ip,
 }
 
 void client_destroy(client_t* const c) {
-  shutdown(c->server_fd, 2);  // Block read and write - close does not do that
-  close(c->server_fd);        // close socket
+  // Block read and write - close does not do that
+  shutdown(c->server_fd, SHUT_RDWR);
+  close(c->server_fd);  // close socket
   free(c);
 }
 
@@ -103,7 +104,7 @@ bool client_ui(client_t* const c) {
     printf("\n%s\n", CLIENT_OPTIONS);
 
     while(c->running) {
-      printf("\nWhat do you want to do?\n> ");
+      printf("\n\nWhat do you want to do?\n> ");
       scanf(" %2[^\n]%*[^\n]", oe);
 
       if(oe[1] != '\0') {
@@ -118,20 +119,20 @@ bool client_ui(client_t* const c) {
       case 'a':
         c->running = client_ui_add(c);
         if(!c->running) {
-          printf("Server error\n");
+          printf("\nServer error\nShuting down\n> ...\n");
         }
         break;
       case 'q':
         c->running = send_number(c->server_fd, QUIT);
         if(!c->running) {
-          printf("Server error\n");
+          printf("\nServer error\nShuting down\n> ...\n");
         }
         c->running = false;
         break;
       case 's':
         c->running = client_ui_search(c);
         if(!c->running) {
-          printf("Server error\n");
+          printf("\nServer error\nShuting down\n> ...\n");
         }
         break;
       }
@@ -161,6 +162,9 @@ bool client_ui_add(client_t* const c) {
                      &f->carbo);
   client_ui_get_uint("Please enter the protein of the food data: [g]",
                      &f->protein);
+
+  printf("Sending data\n> ...");
+
   if(send_number(c->server_fd, ADD)) {
     int rec;
     char buf[sizeof(char) * FOOD_DATA_SERIALIZED_LENGTH];
@@ -169,7 +173,10 @@ bool client_ui_add(client_t* const c) {
 
     if(send_cstr(c->server_fd, buf) && recv_number(c->server_fd, &rec)
        && rec == SUCCESS) {
+      printf("\r> Added");
       suc = true;
+    } else {
+      printf("\r> Not Added");
     }
   }
   food_destroy(f);
@@ -191,18 +198,18 @@ bool client_ui_search(client_t* const c) {
   if(send_number(c->server_fd, SEARCH) && send_cstr(c->server_fd, s)) {
     if(recv_cstr_arr(c->server_fd, &res, &res_len)) {
       if(res_len > 0) {
-        printf("\r> %d results\n", res_len);
+        printf("\r> %d results", res_len);
       } else {
         printf("\r> No food item found.\nPlease check your spelling and try "
-               "again.\n");
+               "again.");
       }
 
       for(int i = 0; i < res_len; ++i) {
         food_t* f;
         food_deserialize(res[i], &f);
 
-        printf("\nFood: %s\nMeasure: %s\nWeight: %.3f g\nkCal: %d\nFat: %d "
-               "g\nCarbo: %d g\nProtein: %dg\n",
+        printf("\n\nFood: %s\nMeasure: %s\nWeight: %.3f g\nkCal: %d\nFat: %d "
+               "g\nCarbo: %d g\nProtein: %dg",
                f->name, f->measure, f->weight, f->k_cal, f->fat, f->carbo,
                f->protein);
 
@@ -212,9 +219,7 @@ bool client_ui_search(client_t* const c) {
       free(res);
       suc = true;
     }
-    // printf("Ping-1\n");
   }
-    // printf("Ping-2\n");
 
   free(s);
 
