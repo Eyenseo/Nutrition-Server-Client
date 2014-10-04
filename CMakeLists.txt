@@ -6,7 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 if(NOT CMAKE_BUILD_TYPE)
   set(
     CMAKE_BUILD_TYPE
-      "Debug"
+      "Release"
       CACHE STRING
         "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
       FORCE
@@ -21,10 +21,12 @@ set(CLIENT_BINARY_NAME "client")
 add_definitions(
   -Wall
   -Wextra
-  -std=gnu99
-  -O2
 )
+
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   add_definitions(
@@ -36,8 +38,9 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   )
 elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   add_definitions(
-    -Wno-unknown-pragmas
-    -Wno-unused-result
+    -Wno-unknown-pragmas  # too much false positive
+    -Wno-unused-result  # too much false positive
+    -Wno-maybe-uninitialized # too much false positive
   )
 endif()
 
@@ -513,21 +516,5 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
         ARGS -E rename
           ${CMAKE_CURRENT_SOURCE_DIR}/client_debug_thread
           ${CMAKE_CURRENT_SOURCE_DIR}/${CLIENT_BINARY_NAME}
-  )
-endif()
-
-
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  # configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/misc/Doxyfile @ONLY)
-  add_custom_target(
-    documentation
-      ${DOXYGEN_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/misc/Doxyfile
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT
-        "Generating API documentation with Doxygen"
-      VERBATIM
   )
 endif()
