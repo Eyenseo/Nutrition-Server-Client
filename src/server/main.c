@@ -47,20 +47,22 @@ int main(int argc, char const* argv[]) {
   action.sa_flags = SA_SIGINFO;
   sigaction(SIGCHLD, &action, NULL);
 
-  server_start(s);
+  if(server_start(s)) {
+    while(true) {
+      // signal() is NOT thread safe!
+      // And since the server doesn't block signal handling is "not" needed ...
+      if(sigwaitinfo(&mask, &info) == -1) {
+        perror("sigwaitinfo() failed");
+        exit(1);
+      }
 
-  while(true) {
-    // signal() is NOT thread safe!
-    // And since the server doesn't block signal handling is "not" needed ...
-    if(sigwaitinfo(&mask, &info) == -1) {
-      perror("sigwaitinfo() failed");
-      exit(1);
+      switch(info.si_signo) {
+      case SIGINT:
+        server_destroy(s);
+        return 0;
+      }
     }
-
-    switch(info.si_signo) {
-    case SIGINT:
-      server_destroy(s);
-      return 0;
-    }
+  } else {
+    server_destroy(s);
   }
 }

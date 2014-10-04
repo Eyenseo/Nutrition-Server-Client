@@ -5,7 +5,7 @@
 \usepackage[automark,headsepline]{scrlayer-scrpage}
 \usepackage[vscale=0.75,vmarginratio={2:3},heightrounded]{geometry} % less margin at bottom
 \usepackage{minted}
-
+\usepackage{enumitem} %for no space in itemnize
 %---------------------------------
 % Meta data
 %---------------------------------
@@ -101,11 +101,13 @@
   The programs full fill the tasks one, two and three without exceptions.
 
   \subsection{Deviations}
-    \begin{itemize}
+    \begin{itemize}[itemsep=5pt,topsep=0pt,parsep=0pt,partopsep=0pt]
       \item
-        For the server the signal handling is not done using the function \linebreak \mintinline{c}{void (*signal(int sig, void (*func)(int)))(int);}  because of thread safety. Also the usage of a signal to handle termination is optional -- from the programs view, as the accept loop is in a thread and with that a normal ui interaction is possible.
+        For the server the signal handling is not done using the function \linebreak \mintinline{c}{void (*signal(int sig, void (*func)(int)))(int);}  because of thread safety. Also the usage of a signal to handle termination is optional -- from the programs view. The accept loop is in a thread and with that a normal ui interaction would be possible.
       \item
         The server features a queue that will always accept new clients, the queue is fed to a thread pool that will then answer client requests -- clients will wait until they receive a start signal from the server.
+      \item
+        The server has two booleans with dataraces -- they are used to toggle the state of the server. THey where left in since it doesn't matter if a thread misses the `first' signal to shut down\footnote{threads only read or set the variable to false} and the mutexes to guard the variables were rated worse (performance).
       \item
         Both, the server and client have a default port and IP address to the programs can be started without arguments for convenience purpose.
     \end{itemize}
@@ -114,7 +116,7 @@
     \texttt{
       ./client [IP-ADDRESS] [PORT]
     }
-    \begin{itemize}
+    \begin{itemize}[itemsep=5pt,topsep=3pt,parsep=0pt,partopsep=0pt]
       \item[] The \texttt{IP-ADDRESS} Argument is optional (but is needed to specify \texttt{PORT}) and defaults to \texttt{127.0.0.1}
       \item[] The \texttt{PORT} Argument is optional and defaults to \texttt{12345}
     \end{itemize}
@@ -122,7 +124,7 @@
     \texttt{
       ./server [PORT]
     }
-    \begin{itemize}
+    \begin{itemize}[itemsep=5pt,topsep=3pt,parsep=0pt,partopsep=0pt]
       \item[] The \texttt{PORT} Argument is optional and defaults to \texttt{12345}
     \end{itemize}
 

@@ -34,7 +34,7 @@ bool thread_pool_start(thread_pool_t* const tp, void (*fun)(int, void*),
     tp->running = true;
     tp->arg = arg;
 
-    int val;
+    int val = 0;
     sem_getvalue(&tp->sem, &val);
     while(val != 0) {
       sem_wait(&tp->sem);

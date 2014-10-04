@@ -38,21 +38,20 @@ void server_destroy(server_t* const s) {
   if(s != NULL) {
     if(s->running) {
       server_stop(s);
-
-      pthread_mutex_destroy(&s->read_mutex);
-      pthread_mutex_destroy(&s->write_mutex);
-      pthread_cond_destroy(&s->write_cond);
-
-      if(s->modified) {
-        file_parser_food_array_to_file(s->db_filename, s->db, s->db_size);
-      }
-
-      for(int i = 0; i < s->db_size; ++i) {
-        food_destroy(s->db[i]);
-      }
-      free(s->db);
-      free(s);
     }
+    pthread_mutex_destroy(&s->read_mutex);
+    pthread_mutex_destroy(&s->write_mutex);
+    pthread_cond_destroy(&s->write_cond);
+
+    if(s->modified) {
+      file_parser_food_array_to_file(s->db_filename, s->db, s->db_size);
+    }
+
+    for(int i = 0; i < s->db_size; ++i) {
+      food_destroy(s->db[i]);
+    }
+    free(s->db);
+    free(s);
   }
 }
 
@@ -63,8 +62,11 @@ bool server_start(server_t* const s) {
       s->running = true;
 
       thread_pool_start(s->tp, (void (*)(int, void*))server_worker, s);
-      server_start_init(s);
-      return true;
+      if(server_start_init(s)) {
+        return true;
+      } else {
+        server_stop(s);
+      }
     }
   }
   return false;
@@ -112,10 +114,11 @@ bool server_start_init(server_t* const s) {
 
   if(p == NULL) {
     fprintf(stderr, "server: failed to bind\n");
-    return 2;
+    freeaddrinfo(servinfo);
+    return false;
   }
+  freeaddrinfo(servinfo);
 
-  freeaddrinfo(servinfo);  // all done with this structure
 
   if(listen(s->server_fd, BACKLOG) == -1) {
     perror("listen");
@@ -168,7 +171,8 @@ bool server_stop(server_t* const s) {
     shutdown(s->server_fd, SHUT_RDWR);
     close(s->server_fd);  // close socket
 
-    pthread_join(s->listener, NULL);
+    // pthread_join(s->listener, NULL);
+
     thread_pool_stop(s->tp);
 
     thread_pool_destroy(s->tp);
