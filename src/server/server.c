@@ -14,6 +14,8 @@ bool server_create(server_t** const sp, const char* const db_filename,
     s->running = false;
     s->read_count = 0;
     s->db_filename = db_filename;
+    s->modified = false;
+
     if(port != NULL) {
       s->port = port;
     } else {
@@ -41,7 +43,9 @@ void server_destroy(server_t* const s) {
       pthread_mutex_destroy(&s->write_mutex);
       pthread_cond_destroy(&s->write_cond);
 
-      file_parser_food_array_to_file(s->db_filename, s->db, s->db_size);
+      if(s->modified) {
+        file_parser_food_array_to_file(s->db_filename, s->db, s->db_size);
+      }
 
       for(int i = 0; i < s->db_size; ++i) {
         food_destroy(s->db[i]);
@@ -156,9 +160,12 @@ bool server_stop(server_t* const s) {
     s->running = false;
 
     for(int i = 0; i < THREAD_POOL_SIZE; ++i) {
-      shutdown(s->used_fds[i], 2);  // Block read and write
+      // Block read and write - close does not do that
+      shutdown(s->used_fds[i], 2);
+      close(s->used_fds[i]);  // close socket
     }
-    shutdown(s->server_fd, 2);  // Block read and write
+    shutdown(s->server_fd, 2);  // Block read and write - close does not do that
+    close(s->server_fd);        // close socket
 
     pthread_join(s->listener, NULL);
     thread_pool_stop(s->tp);
@@ -211,7 +218,8 @@ void server_worker(int id, server_t* s) {
         }
       }
 
-      shutdown(client_fd, 3);  // Block read and write
+      shutdown(client_fd, 2);  // Block read and write - close does not do that
+      close(client_fd);        // close socket
     }
   }
 }
@@ -240,6 +248,7 @@ bool server_worker_add(server_t* const s, int client_fd) {
       ++s->db_size;
       free(s->db);
       s->db = db_new;
+      s->modified = true;
       server_write_end(s);
 
       send_number(client_fd, SUCCESS);

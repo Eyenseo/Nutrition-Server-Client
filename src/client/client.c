@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "networking.h"
 #include "food_data.h"
@@ -40,7 +41,8 @@ void client_create(client_t** const c, const char* const ip,
 }
 
 void client_destroy(client_t* const c) {
-  shutdown(c->server_fd, 2);  // Block read and write
+  shutdown(c->server_fd, 2);  // Block read and write - close does not do that
+  close(c->server_fd);        // close socket
   free(c);
 }
 
@@ -120,7 +122,10 @@ bool client_ui(client_t* const c) {
         }
         break;
       case 'q':
-        send_number(c->server_fd, QUIT);
+        c->running = send_number(c->server_fd, QUIT);
+        if(!c->running) {
+          printf("Server error\n");
+        }
         c->running = false;
         break;
       case 's':
@@ -158,8 +163,7 @@ bool client_ui_add(client_t* const c) {
                      &f->protein);
   if(send_number(c->server_fd, ADD)) {
     int rec;
-    char buf[sizeof(char) * 2 * FOOD_DATA_TEXT_LENGTH + 6 * FOOD_DATA_INT_LENGTH
-             + FOOD_DATA_FLOAT_LENGTH];
+    char buf[sizeof(char) * FOOD_DATA_SERIALIZED_LENGTH];
 
     food_serialize(f, buf);
 
@@ -208,17 +212,24 @@ bool client_ui_search(client_t* const c) {
       free(res);
       suc = true;
     }
+    // printf("Ping-1\n");
   }
+    // printf("Ping-2\n");
+
   free(s);
 
   return suc;
 }
 
 void client_ui_get_cstring(const char* const text, char** const s) {
-  *s = malloc(sizeof(char) * FOOD_DATA_TEXT_LENGTH);
+  *s = malloc(sizeof(char) * FOOD_DATA_TEXT_LENGTH + 1);
+
   do {
     printf("%s\n> ", text);
-  } while(scanf(" %[^\n]", *s) == 0 || strlen(*s) < 1);
+  } while(scanf(" %" STRGIFY(FOOD_DATA_TEXT_LENGTH) "[^\n]", *s) == 0
+          || strlen(*s) < 1);
+  (*s)[FOOD_DATA_TEXT_LENGTH] = '\0';
+  scanf("%*[^\n]");  // clean stdin
 }
 
 void client_ui_get_ufloat(const char* const text, float* const n) {
@@ -227,11 +238,10 @@ void client_ui_get_ufloat(const char* const text, float* const n) {
   while(!good) {
     printf("%s\n> ", text);
 
-    if(scanf(" %f", n) != 0 && *n >= 0) {
+    if(scanf(" %14f", n) != 0 && *n >= 0 && *n != INFINITY && *n != NAN) {
       good = true;
-    } else {
-      scanf(" %*[^\n]");  // clean stdin
     }
+    scanf("%*[^\n]");  // clean stdin
   }
 }
 
@@ -243,9 +253,8 @@ void client_ui_get_uint(const char* const text, int* const n) {
 
     if(scanf(" %d", n) != 0 && *n >= 0) {
       good = true;
-    } else {
-      scanf(" %*[^\n]");  // clean stdin
     }
+    scanf("%*[^\n]");  // clean stdin
   }
 }
 

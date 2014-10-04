@@ -27,6 +27,7 @@ typedef struct {
   int db_size;
   int read_count;
   int server_fd;
+  bool modified;
   bool running;
 } server_t;
 

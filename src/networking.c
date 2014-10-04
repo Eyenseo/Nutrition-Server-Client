@@ -45,8 +45,11 @@ bool recv_number(int const fd, int* const n) {
   char buf[NETWORKING_INT_LENGTH + 1];
   int b_rec;
 
-  if((b_rec = recv(fd, buf, NETWORKING_INT_LENGTH, 0)) == -1 || b_rec == 0) {
+  if((b_rec = recv(fd, buf, NETWORKING_INT_LENGTH, 0)) == -1) {
     perror("recv");
+    return false;
+  }
+  if(b_rec == 0) {
     return false;
   }
   buf[b_rec] = '\0';
